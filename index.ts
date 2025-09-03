@@ -1,13 +1,13 @@
-interface HandlerFunction {
+interface Callback {
   (...args: unknown[]): unknown
 }
 
-class Handler {
-  public f: HandlerFunction
+class CallbackEntry {
+  public f: Callback
   public once: boolean
   public priority: number
 
-  constructor(f: HandlerFunction, once: boolean, priority: number) {
+  constructor(f: Callback, once: boolean, priority: number) {
     this.f = f
     this.once = once
     this.priority = priority
@@ -15,19 +15,19 @@ class Handler {
 }
 
 class Subscription {
-  public handlers: Handler[] = []
+  public handlers: CallbackEntry[] = []
 
-  public add(f: HandlerFunction, priority: number = 0): void {
-    const handler = new Handler(f, false, priority)
+  public add(f: Callback, priority: number = 0): void {
+    const handler = new CallbackEntry(f, false, priority)
     this.insert(handler)
   }
 
-  public addOnce(f: HandlerFunction, priority: number = 0): void {
-    const handler = new Handler(f, true, priority)
+  public addOnce(f: Callback, priority: number = 0): void {
+    const handler = new CallbackEntry(f, true, priority)
     this.insert(handler)
   }
 
-  public remove(f: HandlerFunction): void {
+  public remove(f: Callback): void {
     for (let i = 0; i < this.handlers.length; i++) {
       if (this.handlers[i].f === f) {
         this.handlers.splice(i, 1)
@@ -47,9 +47,9 @@ class Subscription {
     }
   }
 
-  protected handlersForDispatch(): Handler[] {
+  protected handlersForDispatch(): CallbackEntry[] {
     const handlers = this.handlers
-    const updated: Handler[] = []
+    const updated: CallbackEntry[] = []
     for (let i = handlers.length - 1; i >= 0; i--) {
       if (handlers[i].once) {
         // Skip once handlers in the dispatch list
@@ -62,7 +62,7 @@ class Subscription {
     return updated
   }
 
-  private insert(handler: Handler): void {
+  private insert(handler: CallbackEntry): void {
     let pos = 0
     for (; pos < this.handlers.length; pos++) {
       if (this.handlers[pos].priority < handler.priority) break
