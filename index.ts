@@ -82,4 +82,14 @@ class StoppableSubscription extends Subscription {
   }
 }
 
-export { Subscription, PipelineSubscription, StoppableSubscription }
+class DOMSubscription extends Subscription {
+  public dispatch(event: Event): boolean {
+    const handlers = this.handlersForDispatch()
+    for (const handler of handlers) {
+      if (handler.f(event) || event.defaultPrevented) return true
+    }
+    return false
+  }
+}
+
+export { Subscription, PipelineSubscription, StoppableSubscription, DOMSubscription }
