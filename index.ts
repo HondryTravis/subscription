@@ -18,13 +18,11 @@ class Subscription {
   public handlers: CallbackEntry[] = []
 
   public add(f: Callback, priority: number = 0): void {
-    const handler = new CallbackEntry(f, false, priority)
-    this.insert(handler)
+    this.insert(new CallbackEntry(f, false, priority))
   }
 
   public addOnce(f: Callback, priority: number = 0): void {
-    const handler = new CallbackEntry(f, true, priority)
-    this.insert(handler)
+    this.insert(new CallbackEntry(f, true, priority))
   }
 
   public remove(f: Callback): void {
@@ -42,31 +40,25 @@ class Subscription {
 
   public dispatch(...args: unknown[]): void {
     const handlers = this.handlersForDispatch()
-    for (const handler of handlers) {
-      handler.f.apply(null, args)
-    }
+    for (const handler of handlers) handler.f.apply(null, args)
   }
 
   protected handlersForDispatch(): CallbackEntry[] {
     const handlers = this.handlers
-    const updated: CallbackEntry[] = []
+    let updated: CallbackEntry[] | null = null
     for (let i = handlers.length - 1; i >= 0; i--) {
       if (handlers[i].once) {
-        // Skip once handlers in the dispatch list
-      } else {
-        updated.unshift(handlers[i])
+        if (!updated) updated = handlers.slice()
+        updated.splice(i, 1)
       }
     }
-    // Remove once handlers from the main list
-    this.handlers = this.handlers.filter(h => !h.once)
-    return updated
+    if (updated) this.handlers = updated
+    return handlers
   }
 
   private insert(handler: CallbackEntry): void {
     let pos = 0
-    for (; pos < this.handlers.length; pos++) {
-      if (this.handlers[pos].priority < handler.priority) break
-    }
+    for (; pos < this.handlers.length; pos++) if (this.handlers[pos].priority < handler.priority) break
     this.handlers.splice(pos, 0, handler)
   }
 }
@@ -74,9 +66,7 @@ class Subscription {
 class PipelineSubscription extends Subscription {
   public dispatch(value: unknown): unknown {
     const handlers = this.handlersForDispatch()
-    for (const handler of handlers) {
-      value = handler.f(value)
-    }
+    for (const handler of handlers) value = handler.f(value)
     return value
   }
 }
@@ -88,18 +78,8 @@ class StoppableSubscription extends Subscription {
       const result = handler.f.apply(null, args)
       if (result) return result
     }
-    return undefined
+    return void 0
   }
 }
 
-class DOMSubscription extends Subscription {
-  public dispatch(event: Event): boolean {
-    const handlers = this.handlersForDispatch()
-    for (const handler of handlers) {
-      if (handler.f(event) || event.defaultPrevented) return true
-    }
-    return false
-  }
-}
-
-export { Subscription, PipelineSubscription, StoppableSubscription, DOMSubscription }
+export { Subscription, PipelineSubscription, StoppableSubscription }
