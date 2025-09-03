@@ -2,7 +2,7 @@
   "name": "subscription",
   "version": "3.0.0",
   "description": "Simple abstraction for first-class event emitters",
-  "main": "index.js",
+  "main": "index.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/marijnh/subscription.git"
