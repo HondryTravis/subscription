@@ -1,4 +1,4 @@
-// callback 定义
+// callback 定义 2222
 interface Callback {
   (...args: unknown[]): unknown
 }
