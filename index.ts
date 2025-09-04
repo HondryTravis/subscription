@@ -1,3 +1,4 @@
+// callback 定义
 interface Callback {
   (...args: unknown[]): unknown
 }
